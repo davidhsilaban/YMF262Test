@@ -193,15 +193,16 @@ void MIDIFileReader::parseMIDIFile()
 //    }
 
     // Allocate MIDI Track data vector
-    qDebug("Total tracks: %d", totalTracks);
-    midiTrk.resize(totalTracks);
+//    qDebug("Total tracks: %d", totalTracks);
+    //midiTrk.resize(totalTracks);
 
     // Read MIDI Tracks (MTrk)
     while (!midiFile->atEnd()) {
+        struct midiTrkData newMidiTrkData;
         chunk = readLong(); //MTrk
-        midiTrk[cur_trk].trkLength = readLong(); // Read track event length
+        newMidiTrkData.trkLength = readLong(); // Read track event length
         file_pos = midiFile->pos();
-        while (midiFile->pos() < file_pos+midiTrk[cur_trk].trkLength) { // Read events from current track
+        while (midiFile->pos() < file_pos+newMidiTrkData.trkLength) { // Read events from current track
             cur_delta = readVLQ();
             //readVLQ();
             cur_byte = readChar();
@@ -257,7 +258,7 @@ void MIDIFileReader::parseMIDIFile()
                 }
             }
 
-            midiTrk[cur_trk].events.append(newEvent);
+            newMidiTrkData.events.append(newEvent);
             //new midiEvent{cur_delta, cur_event, cur_byte, 0};
             //            } else {
             //                if (cur_event == 0xFF) {
@@ -274,8 +275,11 @@ void MIDIFileReader::parseMIDIFile()
             //                qDebug("Pos: %d, Event: %x", midiFile->pos(), cur_byte);
             //            }
         }
+        midiTrk.append(newMidiTrkData);
         cur_trk++;
     }
+    qDebug("Total tracks in MIDI header: %d, Real total tracks in MIDI file: %d", totalTracks, cur_trk);
+    //totalTracks = cur_trk+1;
     closeMIDIFile();
 }
 
