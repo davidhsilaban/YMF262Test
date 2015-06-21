@@ -3,27 +3,10 @@
 SynthThread::SynthThread(MainWindow *parent)
     : QThread(parent), m_pos(0)
 {
-    next_chn = -1;
-    used_chns = 0;
     memset(NOTE, 0, sizeof(NOTE));
     mainWindow = parent;
-    chan = 0;
-    last_force_chn = 0;
-
-    // Resize MIDI controller vectors to number of MIDI channels
-    midiCtrlValues.resize(16);
 
     INSTR.resize(16);
-
-    // Resize sustain notes vector to number of MIDI channels
-    midiSustainNotes.resize(16);
-    midiActiveNotes.resize(16);
-    for (int c = 0; c < 16; c++) {
-        midiSustainNotes[c] = QHash<int, int>();
-        midiActiveNotes[c] = QHash<int, int>();
-        // Set size to 128 controller values
-        midiCtrlValues[c].resize(128);
-    }
 
     ymf262io = new YMF262IO(this, 0);
     synthBuffer = new QBuffer(this);
@@ -271,6 +254,34 @@ void SynthThread::control_change(int chn, int c, int v)
 
 void SynthThread::start()
 {
+    next_chn = -1;
+    used_chns = 0;
+    chan = 0;
+    last_force_chn = 0;
+
+    // Resize MIDI controller vectors to number of MIDI channels
+    midiCtrlValues.clear();
+    midiCtrlValues.resize(16);
+
+    // Resize sustain notes vector to number of MIDI channels
+    midiSustainNotes.clear();
+    midiSustainNotes.resize(16);
+    midiActiveNotes.clear();
+    midiActiveNotes.resize(16);
+    for (int c = 0; c < 16; c++) {
+        midiSustainNotes[c] = QHash<int, int>();
+        midiActiveNotes[c] = QHash<int, int>();
+        // Set size to 128 controller values
+        midiCtrlValues[c].clear();
+        midiCtrlValues[c].resize(128);
+    }
+
+    USED.clear();
+    USED.resize(OPL_CHANNELS);
+    for (int opl_chn = 0; opl_chn < OPL_CHANNELS; opl_chn++) {
+        USED[opl_chn] = qMakePair((qint32)-1, (qint32)-1);
+    }
+    ymf262io->reset();
     synthBuffer->open(QIODevice::ReadWrite);
     synthBuffer->seek(0);
     isActive = true;
@@ -280,7 +291,14 @@ void SynthThread::start()
 void SynthThread::stop()
 {
     isActive = false;
+    while (isRunning()) {
+        msleep(10);
+    }
+    synthBuffer->buffer().clear();
     synthBuffer->close();
+    while (synthBuffer->isOpen()) {
+        msleep(10);
+    }
 }
 
 void SynthThread::note_off(int chn, int n, int v)

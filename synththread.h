@@ -15,7 +15,7 @@
 static int NOTES[12] = {0x156, 0x16B, 0x181, 0x198, 0x1B0, 0x1CA, 0x1E5, 0x202, 0x220, 0x241, 0x263, 0x287};
 static int OPS[9] = {0x0, 0x1, 0x2, 0x8, 0x9, 0xA, 0x10, 0x11, 0x12};
 static int NOTE[128];
-static QPair<qint32, qint32> USED[9] = {qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1)};
+//static QPair<qint32, qint32> USED[9] = {qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1), qMakePair((qint32)-1, (qint32)-1)};
 //static int INSTR[16] = {494, 5933, 494, 494, 494, 494, 5933, 494, 494, 0, 494, 494, 494, 494, 494, 494};
 
 class MainWindow;
@@ -96,6 +96,7 @@ private:
     QVector<int> drumMap;
     QVector<int> programMap;
     QVector<int> INSTR;
+    QVector< QPair<qint32, qint32> > USED;
 
     // QThread interface
     int find_next_chn(int chn, int note);
