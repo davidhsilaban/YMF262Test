@@ -11,7 +11,7 @@ extern "C" {
 }
 #endif
 
-class YMF262IO : public QIODevice
+class YMF262IO : public QObject
 {
 	Q_OBJECT
 
@@ -23,14 +23,17 @@ public:
     void writeReg(int chip, int set, int reg, int val);
     void updateOne(INT16 *dst, int length);
     void enableOPL3();
+    void reset();
 
 private:
     int bufsize;
     QByteArray baData;
 
+/*
     // QIODevice interface
 protected:
     qint64 readData(char *data, qint64 maxlen);
     qint64 writeData(const char *data, qint64 len);
+*/
 };
 #endif // YMF262IO_H
