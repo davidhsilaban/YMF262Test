@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QTimer>
 #include <QCloseEvent>
+#include <QFileDialog>
 #include <Windows.h>
 #include "ymf262io.h"
 #include "playthread.h"

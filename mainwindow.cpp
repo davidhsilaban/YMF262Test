@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     pullTimer = new QTimer(this);
     connect(pullTimer, SIGNAL(timeout()), SLOT(timerTimeout()));
     playThread = new PlayThread(this, synthThread);
+    audioBuf = NULL;
     //pullTimer->start(15);
     //playThread = new PlayThread(this, synthThread);
     //playThread->start();
@@ -33,12 +34,19 @@ MainWindow::~MainWindow()
 
 void MainWindow::soundOn()
 {
+    QFileDialog fileDlg;
+
+    fileDlg.setFileMode(QFileDialog::ExistingFile);
+    fileDlg.setFilters(QString("MIDI Files (*.mid)|All Files (*.*)").split("|"));
+    fileDlg.setOption(QFileDialog::DontUseNativeDialog, false);
     //synthThread->ymf262io->writeReg(0xB0, 0x32);
     //audioOut->start(synthThread->getSynthBuffer());
     //audioOut->resume();
-    stopMIDISong();
-    playThread->setMIDIFile("gmstri00.mid");
-    playMIDISong();
+    if (fileDlg.exec()) {
+        stopMIDISong();
+        playThread->setMIDIFile(fileDlg.selectedFiles().first());
+        playMIDISong();
+    }
 }
 
 void MainWindow::soundOff()
@@ -81,7 +89,12 @@ void MainWindow::stopMIDISong()
     playThread->stop();
     pullTimer->stop();
     synthThread->stop();
+    if (audioBuf != NULL) {
+        audioBuf->close();
+        audioBuf = NULL;
+    }
     audioOut->stop();
+    audioOut->reset();
 }
 
 void MainWindow::stateChanged(QAudio::State state)
@@ -102,14 +115,16 @@ void MainWindow::timerTimeout()
     //audioBuf->write(synthThread->getSynthBuffer()->read(audioOut->bytesFree()));
     //qDebug("%d", audioBuf->write(synthThread->getSynthBuffer()->read(audioOut->periodSize())));
     //qDebug("%d", synthThread->getSynthBuffer()->read(1024).size());
-    int chunks = audioOut->bytesFree()/audioOut->periodSize();
-    while (chunks) {
-        const qint64 len = synthThread->getSynthBuffer()->read(audBuf.data(), audioOut->periodSize());
-        if (len)
-            audioBuf->write(audBuf.data(), len);
-        if (len != audioOut->periodSize())
-            break;
-        --chunks;
+    if (audioOut->error() != QAudio::UnderrunError) {
+        int chunks = audioOut->bytesFree()/audioOut->periodSize();
+        while (chunks) {
+            const qint64 len = synthThread->getSynthBuffer()->read(audBuf.data(), audioOut->periodSize());
+            if (len)
+                audioBuf->write(audBuf.data(), len);
+            if (len != audioOut->periodSize())
+                break;
+            --chunks;
+        }
     }
 }
 
