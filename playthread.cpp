@@ -94,6 +94,9 @@ void PlayThread::program_change(int chn, int c)
 void PlayThread::stop()
 {
     midiReader->stopMIDIFile();
+    while (isRunning()) {
+        msleep(10);
+    }
 }
 
 void PlayThread::start()
